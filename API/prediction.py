@@ -1,85 +1,62 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import pickle
 import numpy as np
 from fastapi.middleware.cors import CORSMiddleware
 
-# Load model
-model = pickle.load(open('model.pkl', 'rb'))
+# Load model and scalar
 
-app = FastAPI(
-    title="Student Performance Prediction API",
-    description="Predicts student performance based on various factors.",
-    version="1.0.0"
-)
+model = pickle.load(open('model.pkl', 'rb'))
+scaler = pickle.load(open('scaler.pkl', 'rb'))
+ars_model = pickle.load(open('ars_model.pkl', 'rb'))
+
+
+app = FastAPI()
 
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=['*'],  # Allows all origins
+    allow_origins=['*'],
     allow_credentials=True,
-    allow_methods=['*'],   # Allows all HTTP methods
-    allow_headers=['*'],   # Allows all headers
+    allow_methods=['*'],
+    allow_headers=['*'],
 )
 
-# Define expected input schema
-class PredictionInput(BaseModel):
-    hours_studied: float
-    previous_scores: float
-    extracurricular_activities: float
-    sleep_hours: float
-    sample_question_papers_practiced: float
+class LoadBalancePredictionInput(BaseModel):
+    training_hours_per_week: float = Field(..., ge=0, le=40, description="Training hours per week (0-40)")
+    recovery_days_per_week: float = Field(..., ge=0, le=7, description="Recovery days per week (0-7)")
+    acl_risk_score: float = Field(..., ge=0, le=100, description="ACL Risk Score (0-100)")
 
+class ARSPredictionInput(BaseModel):
+    fatigue_score: float = Field(..., ge=0, le=100, description="Fatigue Score (1-9)")
 
-@app.post('/predict', tags=["Prediction"])
-def predict(data: PredictionInput):
-    """
-    Predicts a student's performance index based on the given input features.
-    
-    **Input JSON Example**:
-    ```json
-    {
-        "hours_studied": 5,
-        "previous_scores": 80,
-        "extracurricular_activities": 2,
-        "sleep_hours": 7,
-        "sample_question_papers_practiced": 3
-    }
-    ```
-    **Output Example**:
-    ```json
-    {
-        "Performance Index": 75.3
-    }
-    ```
-    """
-    # Convert input data to a NumPy array
+# Endpoint to predict ACL Risk Score
+@app.post('/predict-ars')
+def predict(data: ARSPredictionInput):
     X_input = np.array([
-        data.hours_studied,
-        data.previous_scores,
-        data.extracurricular_activities,
-        data.sleep_hours,
-        data.sample_question_papers_practiced
+        data.fatigue_score,
     ]).reshape(1, -1)
+  
 
-    # Make prediction
-    prediction = model.predict(X_input)
+    prediction = ars_model.predict(X_input)
 
-    return {"Performance Index": round(float(prediction[0]), 2)}
+    return {"ACL Risk Score": float(prediction[0])}
 
+@app.post('/predict-load-balance-score')
+def predict(data: LoadBalancePredictionInput):
+    X_input = np.array([
+        data.training_hours_per_week,
+        data.recovery_days_per_week,
+        data.acl_risk_score
+    ]).reshape(1, -1)
+    X_scaled = scaler.transform(X_input)
 
-@app.get("/", tags=["Docs"])
-def root():
-    """
-    Root endpoint. Redirects to Swagger UI for API documentation.
-    """
-    return {
-        "message": "Welcome to the Student Performance Prediction API!",
-        "docs_url": "/docs",
-        "redoc_url": "/redoc"
-    }
+    prediction = model.predict(X_scaled)
+
+    return {"Load Balance Score": float(prediction[0])}
 
 # Run the API with uvicorn
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -4,7 +4,7 @@
 My mission is to reduce sports-related injuries by using machine learning to predict injury risk and optimize training routines. This system helps athletes and coaches make informed decisions about training intensity and recovery, leading to better performance outcomes while minimizing injury potential.
 
 ## Demo
-[![Athlete Injury Prediction Demo]
+Athlete Injury Prediction Demo
 
 Watch [2-minute demo on YouTube]
 

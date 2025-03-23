@@ -4,10 +4,13 @@
 My mission is to reduce sports-related injuries by using machine learning to predict injury risk and optimize training routines. This system helps athletes and coaches make informed decisions about training intensity and recovery, leading to better performance outcomes while minimizing injury potential.
 
 ## Demo
-[![Athlete Injury Prediction Demo](https://img.youtube.com/vi/YOUTUBE_VIDEO_ID/0.jpg)](https://www.youtube.com/watch?v=YOUTUBE_VIDEO_ID)
+[![Athlete Injury Prediction Demo]
 
-Watch [2-minute demo on YouTube](https://www.youtube.com/watch?v=YOUTUBE_VIDEO_ID)
+Watch [2-minute demo on YouTube]
 
+```
+https://www.loom.com/share/8de6078dd8f24e33b8b8a880a7f54da1?sid=b32ea569-f77d-4892-beb4-35541c5c2e26
+```
 ## Public API Endpoint
 The API is deployed and publicly available at:
 ```

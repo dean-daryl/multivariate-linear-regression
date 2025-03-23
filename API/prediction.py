@@ -28,7 +28,7 @@ class LoadBalancePredictionInput(BaseModel):
     acl_risk_score: float = Field(..., ge=0, le=100, description="ACL Risk Score (0-100)")
 
 class ARSPredictionInput(BaseModel):
-    fatigue_score: float = Field(..., ge=0, le=100, description="Fatigue Score (1-9)")
+    fatigue_score: float = Field(..., ge=0, le=10, description="Fatigue Score (1-9)")
 
 # Endpoint to predict ACL Risk Score
 @app.post('/predict-ars')

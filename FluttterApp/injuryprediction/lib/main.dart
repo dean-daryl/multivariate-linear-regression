@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
-import 'dart:ui'; // Add import for ImageFilter
+import 'dart:ui';
 import 'package:http/http.dart' as http;
 
 void main() {
+  // Add error handling for the entire app
+  FlutterError.onError = (FlutterErrorDetails details) {
+    print('Flutter error caught: ${details.exception}');
+    print('Stack trace: ${details.stack}');
+  };
+
   runApp(const MyApp());
 }
 
@@ -18,7 +24,198 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,
       ),
-      home: const InjuryPredictionPage(title: 'Fitness Tracker'),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => const LandingPage(),
+        '/tracker': (context) => const InjuryPredictionPage(title: 'Fitness Tracker'),
+      },
+    );
+  }
+}
+
+class LandingPage extends StatelessWidget {
+  const LandingPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF1A1A2E),
+              Color(0xFF0F3460),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 40),
+                // App logo/icon
+                Center(
+                  child: Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.1),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.blue.withOpacity(0.3),
+                          blurRadius: 20,
+                          spreadRadius: 5,
+                        ),
+                      ],
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.sports_gymnastics,
+                        size: 70,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 30),
+                // App title
+                const Center(
+                  child: Text(
+                    'Athlete Injury\nPrediction',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 36,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: 1.2,
+                      height: 1.2,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 30),
+                // App description
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.1),
+                      width: 1.5,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      _buildFeatureRow(
+                        Icons.analytics_outlined,
+                        'Smart Risk Assessment',
+                        'Uses ML algorithms to predict injury risk based on your training patterns',
+                      ),
+                      const SizedBox(height: 20),
+                      _buildFeatureRow(
+                        Icons.balance,
+                        'Load Balance Analysis',
+                        'Evaluates training load to optimize performance while minimizing injury risk',
+                      ),
+                      const SizedBox(height: 20),
+                      _buildFeatureRow(
+                        Icons.person_outline,
+                        'Personalized Feedback',
+                        'Recommends adjustments to your training regime based on your data',
+                      ),
+                    ],
+                  ),
+                ),
+                const Spacer(),
+                // Start button
+                ElevatedButton(
+                  onPressed: () {
+                    try {
+                      Navigator.of(context).pushReplacementNamed('/tracker');
+                    } catch (e) {
+                      print('Navigation error: $e');
+                      // Fallback navigation
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(
+                          builder: (context) => const InjuryPredictionPage(title: 'Fitness Tracker'),
+                        ),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 5,
+                  ),
+                  child: const Text(
+                    'Get Started',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.0,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 40),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFeatureRow(IconData icon, String title, String description) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.blue.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(
+            icon,
+            color: Colors.white,
+            size: 24,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                description,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.white.withOpacity(0.7),
+                  height: 1.4,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -43,7 +240,6 @@ class _InjuryPredictionPageState extends State<InjuryPredictionPage> {
   @override
   void initState() {
     super.initState();
-    // Predict ACL Risk Score based on initial fatigue
     _predictACLRiskScore();
   }
 
@@ -287,7 +483,7 @@ class _InjuryPredictionPageState extends State<InjuryPredictionPage> {
                             const Icon(Icons.medical_information, color: Colors.redAccent, size: 20),
                             const SizedBox(width: 8),
                             Text(
-                              'ACL Risk: ${aclRiskScore.toStringAsFixed(1)}',
+                              'ACL Injury Risk: ${aclRiskScore.toStringAsFixed(1)}%',
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
@@ -319,307 +515,304 @@ class _InjuryPredictionPageState extends State<InjuryPredictionPage> {
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(20),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: SingleChildScrollView(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.mood,
-                                    color: Colors.white70,
-                                    size: 22,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.mood,
+                                  color: Colors.white70,
+                                  size: 22,
+                                ),
+                                const SizedBox(width: 8),
+                                const Text(
+                                  'How Are You Feeling Today?',
+                                  style: TextStyle(
+                                    fontSize: 18, 
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                    letterSpacing: 0.5,
                                   ),
-                                  const SizedBox(width: 8),
-                                  const Text(
-                                    'How Are You Feeling Today?',
-                                    style: TextStyle(
-                                      fontSize: 18, 
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                      letterSpacing: 0.5,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            
+                            // Fatigue Score Slider with emoji indicators
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      const Text(
+                                        'Fatigue Level',
+                                        style: TextStyle(color: Colors.white70),
+                                      ),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: Colors.redAccent.withOpacity(0.2),
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(
+                                            color: Colors.redAccent.withOpacity(0.5),
+                                            width: 1,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          '${fatigueScore.toStringAsFixed(1)}',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  SliderTheme(
+                                    data: SliderTheme.of(context).copyWith(
+                                      trackHeight: 6,
+                                      thumbShape: const RoundSliderThumbShape(
+                                        enabledThumbRadius: 12,
+                                        elevation: 4,
+                                      ),
+                                      overlayShape: const RoundSliderOverlayShape(
+                                        overlayRadius: 20,
+                                      ),
+                                      activeTrackColor: Colors.redAccent,
+                                      inactiveTrackColor: Colors.redAccent.withOpacity(0.2),
+                                      thumbColor: Colors.redAccent,
+                                      overlayColor: Colors.redAccent.withOpacity(0.2),
+                                    ),
+                                    child: Slider(
+                                      value: fatigueScore,
+                                      min: 1,
+                                      max: 10,
+                                      divisions: 18, // Allow for half points
+                                      onChanged: (value) {
+                                        setState(() {
+                                          fatigueScore = value;
+                                        });
+                                      },
+                                      onChangeEnd: (value) {
+                                        // Re-calculate ACL Risk Score when fatigue changes
+                                        _predictACLRiskScore();
+                                      },
+                                    ),
+                                  ),
+                                  // Emoji scale for the fatigue score
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        const Text(
+                                          '😊',
+                                          style: TextStyle(color: Colors.white70, fontSize: 20),
+                                        ),
+                                        const Text(
+                                          '😐',
+                                          style: TextStyle(color: Colors.white70, fontSize: 20),
+                                        ),
+                                        const Text(
+                                          '😫',
+                                          style: TextStyle(color: Colors.white70, fontSize: 20),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  // Labels below emojis
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        const Text(
+                                          'Fresh',
+                                          style: TextStyle(color: Colors.white70, fontSize: 12),
+                                        ),
+                                        const Text(
+                                          'Normal',
+                                          style: TextStyle(color: Colors.white70, fontSize: 12),
+                                        ),
+                                        const Text(
+                                          'Exhausted',
+                                          style: TextStyle(color: Colors.white70, fontSize: 12),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 12),
-                              
-                              // Fatigue Score Slider with emoji indicators
-                              Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        const Text(
-                                          'Fatigue Level',
-                                          style: TextStyle(color: Colors.white70),
-                                        ),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                          decoration: BoxDecoration(
-                                            color: Colors.redAccent.withOpacity(0.2),
-                                            borderRadius: BorderRadius.circular(12),
-                                            border: Border.all(
-                                              color: Colors.redAccent.withOpacity(0.5),
-                                              width: 1,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            '${fatigueScore.toStringAsFixed(1)}',
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 4),
-                                    SliderTheme(
-                                      data: SliderTheme.of(context).copyWith(
-                                        trackHeight: 6,
-                                        thumbShape: const RoundSliderThumbShape(
-                                          enabledThumbRadius: 12,
-                                          elevation: 4,
-                                        ),
-                                        overlayShape: const RoundSliderOverlayShape(
-                                          overlayRadius: 20,
-                                        ),
-                                        activeTrackColor: Colors.redAccent,
-                                        inactiveTrackColor: Colors.redAccent.withOpacity(0.2),
-                                        thumbColor: Colors.redAccent,
-                                        overlayColor: Colors.redAccent.withOpacity(0.2),
-                                      ),
-                                      child: Slider(
-                                        value: fatigueScore,
-                                        min: 1,
-                                        max: 10,
-                                        divisions: 18, // Allow for half points
-                                        onChanged: (value) {
-                                          setState(() {
-                                            fatigueScore = value;
-                                          });
-                                        },
-                                        onChangeEnd: (value) {
-                                          // Re-calculate ACL Risk Score when fatigue changes
-                                          _predictACLRiskScore();
-                                        },
-                                      ),
-                                    ),
-                                    // Emoji scale for the fatigue score
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          const Text(
-                                            '😊',
-                                            style: TextStyle(color: Colors.white70, fontSize: 20),
-                                          ),
-                                          const Text(
-                                            '😐',
-                                            style: TextStyle(color: Colors.white70, fontSize: 20),
-                                          ),
-                                          const Text(
-                                            '😫',
-                                            style: TextStyle(color: Colors.white70, fontSize: 20),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    // Labels below emojis
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          const Text(
-                                            'Fresh',
-                                            style: TextStyle(color: Colors.white70, fontSize: 12),
-                                          ),
-                                          const Text(
-                                            'Normal',
-                                            style: TextStyle(color: Colors.white70, fontSize: 12),
-                                          ),
-                                          const Text(
-                                            'Exhausted',
-                                            style: TextStyle(color: Colors.white70, fontSize: 12),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                            ),
 
-                              const SizedBox(height: 16),
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.fitness_center,
-                                    color: Colors.white70,
-                                    size: 22,
+                            const SizedBox(height: 16),
+                            Row(
+                              children: [
+                                const Icon(
+                                  Icons.fitness_center,
+                                  color: Colors.white70,
+                                  size: 22,
+                                ),
+                                const SizedBox(width: 8),
+                                const Text(
+                                  'Training Variables',
+                                  style: TextStyle(
+                                    fontSize: 18, 
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                    letterSpacing: 0.5,
                                   ),
-                                  const SizedBox(width: 8),
-                                  const Text(
-                                    'Training Variables',
-                                    style: TextStyle(
-                                      fontSize: 18, 
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                      letterSpacing: 0.5,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            
+                            // Training Hours Slider
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      const Text(
+                                        'Training Hours/Week',
+                                        style: TextStyle(color: Colors.white70),
+                                      ),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: Colors.blue.withOpacity(0.2),
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(
+                                            color: Colors.blue.withOpacity(0.5),
+                                            width: 1,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          '${trainingHours.toStringAsFixed(1)}h',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  SliderTheme(
+                                    data: SliderTheme.of(context).copyWith(
+                                      trackHeight: 6,
+                                      thumbShape: const RoundSliderThumbShape(
+                                        enabledThumbRadius: 12,
+                                        elevation: 4,
+                                      ),
+                                      overlayShape: const RoundSliderOverlayShape(
+                                        overlayRadius: 20,
+                                      ),
+                                      activeTrackColor: Colors.blue,
+                                      inactiveTrackColor: Colors.blue.withOpacity(0.2),
+                                      thumbColor: Colors.blue,
+                                      overlayColor: Colors.blue.withOpacity(0.2),
+                                    ),
+                                    child: Slider(
+                                      value: trainingHours,
+                                      min: 0,
+                                      max: 40,
+                                      divisions: 40,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          trainingHours = value;
+                                        });
+                                      },
+                                      onChangeEnd: (value) {
+                                        // Re-calculate when user stops dragging
+                                        _predictLoadBalance();
+                                      },
                                     ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 12),
-                              
-                              // Training Hours Slider
-                              Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        const Text(
-                                          'Training Hours/Week',
-                                          style: TextStyle(color: Colors.white70),
-                                        ),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                          decoration: BoxDecoration(
-                                            color: Colors.blue.withOpacity(0.2),
-                                            borderRadius: BorderRadius.circular(12),
-                                            border: Border.all(
-                                              color: Colors.blue.withOpacity(0.5),
-                                              width: 1,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            '${trainingHours.toStringAsFixed(1)}h',
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold,
-                                            ),
+                            ),
+                            
+                            // Recovery Days Slider
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      const Text(
+                                        'Recovery Days/Week',
+                                        style: TextStyle(color: Colors.white70),
+                                      ),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: Colors.purple.withOpacity(0.2),
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(
+                                            color: Colors.purple.withOpacity(0.5),
+                                            width: 1,
                                           ),
                                         ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 4),
-                                    SliderTheme(
-                                      data: SliderTheme.of(context).copyWith(
-                                        trackHeight: 6,
-                                        thumbShape: const RoundSliderThumbShape(
-                                          enabledThumbRadius: 12,
-                                          elevation: 4,
+                                        child: Text(
+                                          '$recoveryDays days',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
                                         ),
-                                        overlayShape: const RoundSliderOverlayShape(
-                                          overlayRadius: 20,
-                                        ),
-                                        activeTrackColor: Colors.blue,
-                                        inactiveTrackColor: Colors.blue.withOpacity(0.2),
-                                        thumbColor: Colors.blue,
-                                        overlayColor: Colors.blue.withOpacity(0.2),
                                       ),
-                                      child: Slider(
-                                        value: trainingHours,
-                                        min: 0,
-                                        max: 40,
-                                        divisions: 40,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            trainingHours = value;
-                                          });
-                                        },
-                                        onChangeEnd: (value) {
-                                          // Re-calculate when user stops dragging
-                                          _predictLoadBalance();
-                                        },
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  SliderTheme(
+                                    data: SliderTheme.of(context).copyWith(
+                                      trackHeight: 6,
+                                      thumbShape: const RoundSliderThumbShape(
+                                        enabledThumbRadius: 12,
+                                        elevation: 4,
                                       ),
+                                      overlayShape: const RoundSliderOverlayShape(
+                                        overlayRadius: 20,
+                                      ),
+                                      activeTrackColor: Colors.purple,
+                                      inactiveTrackColor: Colors.purple.withOpacity(0.2),
+                                      thumbColor: Colors.purple,
+                                      overlayColor: Colors.purple.withOpacity(0.2),
                                     ),
-                                  ],
-                                ),
+                                    child: Slider(
+                                      value: recoveryDays.toDouble(),
+                                      min: 0,
+                                      max: 7,
+                                      divisions: 7,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          recoveryDays = value.toInt();
+                                        });
+                                      },
+                                      onChangeEnd: (value) {
+                                        // Re-calculate when user stops dragging
+                                        _predictLoadBalance();
+                                      },
+                                    ),
+                                  ),
+                                ],
                               ),
-                              
-                              // Recovery Days Slider
-                              Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        const Text(
-                                          'Recovery Days/Week',
-                                          style: TextStyle(color: Colors.white70),
-                                        ),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                          decoration: BoxDecoration(
-                                            color: Colors.purple.withOpacity(0.2),
-                                            borderRadius: BorderRadius.circular(12),
-                                            border: Border.all(
-                                              color: Colors.purple.withOpacity(0.5),
-                                              width: 1,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            '$recoveryDays days',
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 4),
-                                    SliderTheme(
-                                      data: SliderTheme.of(context).copyWith(
-                                        trackHeight: 6,
-                                        thumbShape: const RoundSliderThumbShape(
-                                          enabledThumbRadius: 12,
-                                          elevation: 4,
-                                        ),
-                                        overlayShape: const RoundSliderOverlayShape(
-                                          overlayRadius: 20,
-                                        ),
-                                        activeTrackColor: Colors.purple,
-                                        inactiveTrackColor: Colors.purple.withOpacity(0.2),
-                                        thumbColor: Colors.purple,
-                                        overlayColor: Colors.purple.withOpacity(0.2),
-                                      ),
-                                      child: Slider(
-                                        value: recoveryDays.toDouble(),
-                                        min: 0,
-                                        max: 7,
-                                        divisions: 7,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            recoveryDays = value.toInt();
-                                          });
-                                        },
-                                        onChangeEnd: (value) {
-                                          // Re-calculate when user stops dragging
-                                          _predictLoadBalance();
-                                        },
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
                     ),

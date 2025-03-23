@@ -6,7 +6,7 @@ My mission is to reduce sports-related injuries by using machine learning to pre
 ## Demo
 Athlete Injury Prediction Demo
 
-Watch [2-minute demo on YouTube]
+Watch [2-minute demo video]
 
 ```
 https://www.loom.com/share/8de6078dd8f24e33b8b8a880a7f54da1?sid=b32ea569-f77d-4892-beb4-35541c5c2e26
